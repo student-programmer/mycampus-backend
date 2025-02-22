@@ -12,6 +12,4 @@ export interface Config {
 
     readonly HEALTH_TOKEN: string;
 
-    readonly PASSENGERS_ALLOWED: string;
-
 }
