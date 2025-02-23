@@ -14,8 +14,10 @@ export const configProvider = {
             API_PREFIX: Joi.string().required(),
             SWAGGER_ENABLE: Joi.number().required(),
             JWT_SECRET: Joi.string().required(),
+            JWT_EXPIRATION_TIME: Joi.number().required(),
             JWT_ISSUER: Joi.string().required(),
             HEALTH_TOKEN: Joi.string().required(),
+            SALT_SECRET: Joi.string().required(),
         });
 
         const result = validationSchema.validate(env);

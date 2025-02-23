@@ -1,10 +1,15 @@
-// import { ApiProperty } from '@nestjs/swagger';
 import { AuthUser, CompanyUser } from '@prisma/client';
+import { ApiProperty, OmitType } from "@nestjs/swagger";
 
 export class AuthData {
 
+  @ApiProperty()
   public readonly id: number;
+
+  @ApiProperty()
   public readonly email: string;
+
+  @ApiProperty()
   public readonly password: string;
 
   public constructor(entity: AuthUser) {
@@ -12,8 +17,9 @@ export class AuthData {
     this.email = entity.email;
     this.password = entity.password;
   }
-
 }
+
+export class ProtectedAuthData extends OmitType(AuthData, ['password'] as const) {}
 
 
 export class UserData {
