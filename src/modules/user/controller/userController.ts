@@ -1,19 +1,31 @@
-import { BadRequestException, Body, Controller, HttpStatus, Inject, Post, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Inject,
+  Post,
+  Request,
+  UnauthorizedException, UseGuards
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
 
-import { LoggerService, Config } from '../../common';
+import { LoggerService, Config, AuthGuard } from '../../common';
 
 import { AuthPipe } from '../flow';
-import { AuthInput, AccessTokenDto } from '../model';
+import { AuthInput, AccessTokenDto, UserData } from '../model';
 import { UserService } from '../service';
 import { Service } from "../../tokens";
 import { JwtService } from "@nestjs/jwt";
+import { RegisterInput } from "../model/user.input";
+import { RegisterPipe } from "../flow/user.pipe";
 
-@Controller('login')
-@ApiTags('Users')
+@Controller('auth')
+@ApiTags('Auth')
 @ApiBearerAuth()
-export class UserController {
+export class AuthController {
 
   public constructor(
     @Inject(Service.CONFIG)
@@ -24,7 +36,7 @@ export class UserController {
   ) {
   }
 
-  @Post()
+  @Post('login')
   @ApiOperation({ summary: 'Auth User' })
   @ApiResponse({ status: HttpStatus.OK })
   public async signIn(@Body(AuthPipe) input: AuthInput): Promise<AccessTokenDto> {
@@ -48,16 +60,59 @@ export class UserController {
     return {
       access_token: await this.jwtService.signAsync(payload, {
         secret: this.config.JWT_SECRET,
-        expiresIn: `${this.config.JWT_EXPIRATION_TIME}s`,
+        expiresIn: `${ this.config.JWT_EXPIRATION_TIME }s`,
       }),
     };
   }
 
-  @Post()
-  @ApiOperation({ summary: 'Register User' })
-  @ApiResponse({ status: HttpStatus.OK })
-  public async registerUser(@Body(AuthPipe) input: AuthInput): Promise<AccessTokenDto> {
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  async getProfile(@Request() req: Request) {
+    // @ts-ignore
+    const User = await this.UserService.find(req?.user?.email);
 
-    return {};
+    if (!User) {
+      throw new BadRequestException('User not find!');
+    }
+
+    return new UserData(User)
   }
 }
+
+@Controller('user')
+@ApiTags('Users')
+@ApiBearerAuth()
+export class UserController {
+
+  public constructor(
+    @Inject(Service.CONFIG)
+    private readonly config: Config,
+    private jwtService: JwtService,
+    private readonly logger: LoggerService,
+    private readonly UserService: UserService
+  ) {
+  }
+
+  @Post('register')
+  @ApiOperation({ summary: 'Register User' })
+  @ApiResponse({ status: HttpStatus.OK })
+  public async registerUser(@Body(RegisterPipe) input: RegisterInput): Promise<AccessTokenDto> {
+    const User = await this.UserService.create(input);
+
+    if (!User) {
+      throw new BadRequestException('User not find!');
+    }
+
+    this.logger.info(`User with ID ${ User['id'] } success authenticated`);
+    const payload = { sub: User['id'], username: User.authUser['email'] };
+
+    return {
+      access_token: await this.jwtService.signAsync(payload, {
+        secret: this.config.JWT_SECRET,
+        expiresIn: `${ this.config.JWT_EXPIRATION_TIME }s`,
+      })
+    }
+  }
+}
+
+

@@ -4,6 +4,7 @@ import { CommonModule } from '../common';
 import { UserController } from './controller';
 import { UserService } from './service';
 import { JwtModule } from "@nestjs/jwt";
+import { AuthController } from "./controller/userController";
 
 @Module({
     imports: [
@@ -14,7 +15,8 @@ import { JwtModule } from "@nestjs/jwt";
         UserService
     ],
     controllers: [
-        UserController
+        UserController,
+        AuthController
     ],
     exports: []
 })
