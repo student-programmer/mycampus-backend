@@ -1,10 +1,10 @@
-import { INestApplication } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import {INestApplication} from '@nestjs/common';
+import {NestFactory} from '@nestjs/core';
+import {FastifyAdapter, NestFastifyApplication} from '@nestjs/platform-fastify';
+import {DocumentBuilder, SwaggerModule} from '@nestjs/swagger';
 
-import { ApplicationModule } from './modules/app.module';
-import { CommonModule, LogInterceptor } from './modules/common';
+import {ApplicationModule} from './modules/app.module';
+import {CommonModule, LogInterceptor} from './modules/common';
 
 /**
  * These are API defaults that can be changed using environment variables,
@@ -54,7 +54,7 @@ async function bootstrap(): Promise<void> {
 
     const app = await NestFactory.create<NestFastifyApplication>(
         ApplicationModule,
-        new FastifyAdapter()
+        new FastifyAdapter(), {cors: true}
     );
 
     // @todo Enable Helmet for better API security headers
