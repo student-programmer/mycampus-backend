@@ -28,8 +28,8 @@ COPY --from=builder --chown=node:node /home/node/package*.json ./
 
 RUN npx prisma generate
 
-
+# Устанавливаем зависимости для продакшн окружения
 RUN npm install --omit=dev
 
-# Запуск приложения
-CMD ["node", "dist/server.js"]
+# Выполняем миграции при старте контейнера
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
