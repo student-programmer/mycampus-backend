@@ -13,8 +13,7 @@
     "outDir": "./dist",
     "types": [
       "node",
-      "node_modules/@prisma/client",
-      "node_modules/@types"
+      "@prisma/client"
     ],
     "strictNullChecks": true,
     "noUnusedLocals": true

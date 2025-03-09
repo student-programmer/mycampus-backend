@@ -1,21 +1,39 @@
-# THIS DOCKERFILE IS INTENDED FOR DEVELOPMENT ENVIRONMENTS
-# DO NOT USE THIS FOR PRODUCTION USAGES.
-
-version: '3'
+version: '3.8'
 
 services:
-  postgresql:
-    image: docker.io/bitnami/postgresql:16
+  backend:
+    build: .
     ports:
-      - '5432:5432'
-    volumes:
-      - 'postgresql_data:/bitnami/postgresql'
+      - "3000:3000"
+    depends_on:
+      - postgresql
+    env_file:
+      - .env  # Указываем путь к вашему .env файлу
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - POSTGRESQL_DATABASE=nestjs
-      - POSTGRESQL_USERNAME=nestjs
-      - POSTGRESQL_PASSWORD=password
+      - DATABASE_URL=postgresql://nestjs:password@postgresql:5432/nestjs  # Используем имя контейнера postgresql для подключения
+      - API_PORT=${API_PORT}           # Используем переменную из .env для порта API
+      - API_PREFIX=${API_PREFIX}       # Используем переменную из .env для префикса API
+      - SWAGGER_ENABLE=${SWAGGER_ENABLE} # Используем переменную из .env для включения Swagger
+      - JWT_SECRET=${JWT_SECRET}       # Используем переменную из .env для JWT
+      - JWT_ISSUER=${JWT_ISSUER}       # Используем переменную из .env для JWT
+      - HEALTH_TOKEN=${HEALTH_TOKEN}   # Используем переменную из .env для health token
+    networks:
+      - mynetwork  # Используем одну сеть для контейнеров
+
+  postgresql:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=nestjs
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=nestjs
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork  # Используем одну сеть для контейнеров
 
 volumes:
-  postgresql_data:
-    driver: local
+  postgres_data:
+
+networks:
+  mynetwork:
+    driver: bridge  # Используем мостовую сеть для контейнеров
