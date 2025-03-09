@@ -9,33 +9,20 @@ export class PlacesController {
     // Маршрут для получения всех мест с фильтрацией
     @Get()
     async getPlaces(
-        @Query('name') name?: string,
-        @Query('ratingMin') ratingMin?: number,
-        @Query('ratingMax') ratingMax?: number,
-        @Query('category') category?: string,
-        @Query('address') address?: string,
-        @Query('keywords') keywords?: string,
-        @Query('website') website?: string,
-        @Query('instagram') instagram?: string,
-        @Query('phoneNumber') phoneNumber?: string,
-        @Query('workingHours') workingHours?: string,
-        @Query('description') description?: string
+        @Query()
+        filters: {
+            name?: string;
+            rating?: number;
+            category?: string;
+            address?: string;
+            keywords?: string;
+            website?: string;
+            instagram?: string;
+            phoneNumber?: string;
+            workingHours?: string;
+            description?: string;
+        }
     ): Promise<Place[]> {
-        // Создаем объект фильтров
-        const filters = {
-            name,
-            ratingMin,
-            ratingMax,
-            category,
-            address,
-            keywords,
-            website,
-            instagram,
-            phoneNumber,
-            workingHours,
-            description,
-        };
-
         // Передаем фильтры в сервис
         return this.placesService.getAllPlaces(filters);
     }
