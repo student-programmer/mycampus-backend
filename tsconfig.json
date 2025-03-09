@@ -11,19 +11,11 @@
     "sourceMap": true,
     "allowJs": true,
     "outDir": "./dist",
-    "types": [
-      "node",
-      "node_modules/@prisma/client",
-      "node_modules/@types"
-    ],
+    "rootDir": "./src",
+    "types": ["node", "@prisma/client"],
     "strictNullChecks": true,
     "noUnusedLocals": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }
