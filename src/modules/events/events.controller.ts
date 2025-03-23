@@ -1,15 +1,17 @@
 // events.controller.ts
-import { Controller, Get, Param, Query } from "@nestjs/common";
-import { Event } from "@prisma/client";
-import { EventsService } from "./events.service";
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Event } from '@prisma/client';
+import { EventsService } from './events.service';
+import {ApiTags} from '@nestjs/swagger';
 
-@Controller("events")
+@Controller('events')
+@ApiTags('Events')
 export class EventsController {
-    constructor(private readonly eventsService: EventsService) {}
+    public constructor(private readonly eventsService: EventsService) {}
 
     // Маршрут для получения всех событий с фильтрацией
     @Get()
-    async getEvents(
+    public async getEvents(
         @Query()
         filters: {
             name?: string;
@@ -28,8 +30,8 @@ export class EventsController {
     }
 
     // Маршрут для получения одного события по id
-    @Get(":id")
-    async getEvent(@Param("id") id: string): Promise<Event | null> {
+    @Get(':id')
+    public async getEvent(@Param('id') id: string): Promise<Event | null> {
         return this.eventsService.getEventById(+id); // Передаем id в сервис
     }
 }

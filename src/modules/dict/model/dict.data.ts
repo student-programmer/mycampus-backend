@@ -1,5 +1,7 @@
+// eslint-disable-next-line max-classes-per-file
+import { ApiProperty } from '@nestjs/swagger';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { Language, Interest, University, StudyDirection } from '@prisma/client';
-import { ApiProperty } from "@nestjs/swagger";
 
 export class LanguageData {
 
@@ -23,7 +25,7 @@ export class UniversityData {
   @ApiProperty()
   public readonly name: string;
 
-  public constructor(entity: Language) {
+  public constructor(entity: University) {
     this.id = entity.id;
     this.name = entity.name;
   }
@@ -37,7 +39,7 @@ export class InterestData {
   @ApiProperty()
   public readonly name: string;
 
-  public constructor(entity: Language) {
+  public constructor(entity: Interest) {
     this.id = entity.id;
     this.name = entity.name;
   }
@@ -51,7 +53,7 @@ export class StudyDirectionData {
   @ApiProperty()
   public readonly name: string;
 
-  public constructor(entity: Language) {
+  public constructor(entity: StudyDirection) {
     this.id = entity.id;
     this.name = entity.name;
   }

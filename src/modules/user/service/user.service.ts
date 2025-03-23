@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
+import { AuthUser, User } from '@prisma/client';
 import { PrismaService } from '../../common';
-import { AuthUser, User } from "@prisma/client";
-import { RegisterInput } from "../model/user.input";
+import { RegisterInput } from '../model/user.input';
 
 @Injectable()
 export class UserService {
@@ -45,7 +45,7 @@ export class UserService {
       },
     });
 
-    return user
+    return user;
   }
 
   /**
@@ -53,8 +53,8 @@ export class UserService {
    *
    * @returns A User object
    */
-  public async create(payload: RegisterInput): Promise<(User & { authUser: AuthUser }) | null> {
-    const hashedPassword = payload['password']
+  public async create(payload: RegisterInput, hashedPassword: string): Promise<(User & { authUser: AuthUser }) | null> {
+
 
     const user = await this.prismaService.user.create({
         data: {
@@ -73,8 +73,8 @@ export class UserService {
           authUser: true, // Включает информацию о связанном User
         },
       });
-    console.log(user)
+    console.log(user);
 
-    return user
+    return user;
   }
 }

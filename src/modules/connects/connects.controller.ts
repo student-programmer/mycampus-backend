@@ -3,8 +3,10 @@ import { Controller, Get, Query, Param } from "@nestjs/common"; // Добавь�
 import { User } from "@prisma/client";
 import { ConnectsService } from "./connects.service";
 import { UserFilterDto } from "./user-filter.dto";
+import {ApiTags} from "@nestjs/swagger";
 
 @Controller("connects")
+@ApiTags('Connects')
 export class ConnectsController {
     constructor(private readonly usersService: ConnectsService) {}
 

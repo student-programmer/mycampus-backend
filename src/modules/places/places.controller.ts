@@ -1,8 +1,10 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { Place } from '@prisma/client';
 import { PlacesService } from './places.service';
+import {ApiTags} from "@nestjs/swagger";
 
 @Controller('places')
+@ApiTags('Places')
 export class PlacesController {
     constructor(private readonly placesService: PlacesService) {}
 
