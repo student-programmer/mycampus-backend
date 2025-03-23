@@ -1,5 +1,5 @@
+import {ApiProperty, OmitType} from '@nestjs/swagger';
 import {AuthUser, CompanyUser} from '@prisma/client';
-import {ApiProperty, OmitType} from "@nestjs/swagger";
 
 export class AuthData {
 

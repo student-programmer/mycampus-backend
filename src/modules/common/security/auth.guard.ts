@@ -1,9 +1,9 @@
 import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { FastifyRequest } from 'fastify';
 
 import { Service } from '../../tokens';
-import { JwtService } from "@nestjs/jwt";
-import { Config } from "../model";
+import { Config } from '../model';
 
 
 @Injectable()
@@ -17,6 +17,7 @@ export class AuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest<FastifyRequest>();
         const token = this.extractTokenFromHeader(request);
+
         if (!token) {
             throw new UnauthorizedException();
         }

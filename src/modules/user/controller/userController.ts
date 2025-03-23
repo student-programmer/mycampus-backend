@@ -9,22 +9,21 @@ import {
     Request,
     UseGuards
 } from '@nestjs/common';
+import {JwtService} from '@nestjs/jwt';
 import {ApiBearerAuth, ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
 
 import {LoggerService, Config, AuthGuard} from '../../common';
 
+import {Service} from '../../tokens';
 import {AuthPipe} from '../flow';
+import {RegisterPipe} from '../flow/user.pipe';
 import {AuthInput, AccessTokenDto, UserData} from '../model';
+import {RegisterInput} from '../model/user.input';
 import {UserService} from '../service';
-import {Service} from "../../tokens";
-import {JwtService} from "@nestjs/jwt";
-import {RegisterInput} from "../model/user.input";
-import {RegisterPipe} from "../flow/user.pipe";
 
 @Controller('auth')
 @ApiTags('Auth')
-@ApiBearerAuth()
 export class AuthController {
 
     public constructor(
@@ -50,11 +49,7 @@ export class AuthController {
             });
         }
 
-        const hash = await bcrypt.hash(input['password'], this.config.SALT_SECRET);
-
-        // const isMatch = await bcrypt.compare(User.authUser.password, hash);
-
-        const isMatch = User.authUser.password === hash;
+        const isMatch = await bcrypt.compare(input['password'], User.authUser.password);
 
         if (!isMatch) {
             throw new BadRequestException({
@@ -74,23 +69,30 @@ export class AuthController {
         };
     }
 
-    @UseGuards(AuthGuard)
-    @Get('profile')
-    async getProfile(@Request() req: Request) {
-        // @ts-ignore
-        const User = await this.UserService.find(req?.user?.email);
+    @Post('register')
+    @ApiOperation({summary: 'Register User'})
+    @ApiResponse({status: HttpStatus.OK})
+    public async registerUser(@Body(RegisterPipe) input: RegisterInput): Promise<null> {
+        const hashedPassword = await bcrypt.hash(input['password'], 10);
+        const User = await this.UserService.create(input, hashedPassword);
 
         if (!User) {
-            throw new BadRequestException('User not find!');
+            throw new BadRequestException({
+                field: 'user',
+                message: 'User not created!'
+            });
         }
 
-        return new UserData(User);
+        this.logger.info(`User with ID ${User['id']} success authenticated`);
+
+        return null;
     }
+
 }
 
 @Controller('user')
 @ApiTags('Users')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 export class UserController {
 
     public constructor(
@@ -102,30 +104,36 @@ export class UserController {
     ) {
     }
 
-    @Post('register')
-    @ApiOperation({summary: 'Register User'})
-    @ApiResponse({status: HttpStatus.OK})
-    public async registerUser(@Body(RegisterPipe) input: RegisterInput): Promise<AccessTokenDto> {
-        const hashedPassword = await bcrypt.hash(input['password'], this.config.SALT_SECRET);
-        const User = await this.UserService.create(input, hashedPassword);
+    @UseGuards(AuthGuard)
+    @Get('profile')
+    @ApiOperation({summary: 'Get profile'})
+    async getProfile(@Request() req: Request) {
+
+        // @ts-ignore
+        const jwtToken = req.headers['authorization'].replace('Bearer ', '');
+
+        // @ts-ignore
+        const payload = await this.jwtService.verifyAsync(
+            jwtToken,
+            {
+                secret: this.config.JWT_SECRET
+            }
+        );
+
+        // @ts-ignore
+        const User = await this.UserService.find(payload['username']);
+
+        // @ts-ignore
+        this.logger.info(`User with ID ${User['id']} success authenticated`);
+
 
         if (!User) {
-            throw new BadRequestException({
-                field: 'user',
-                message: 'User not created!'
-            });
+            throw new BadRequestException('User not find!');
         }
 
-        this.logger.info(`User with ID ${User['id']} success authenticated`);
-        const payload = {sub: User['id'], username: User.authUser['email']};
-
-        return {
-            access_token: await this.jwtService.signAsync(payload, {
-                secret: this.config.JWT_SECRET,
-                expiresIn: `${this.config.JWT_EXPIRATION_TIME}s`,
-            })
-        };
+        return new UserData(User);
     }
+
 }
 
 

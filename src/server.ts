@@ -1,19 +1,19 @@
-import { INestApplication } from "@nestjs/common";
-import { NestFactory } from "@nestjs/core";
+import {INestApplication} from '@nestjs/common';
+import {NestFactory} from '@nestjs/core';
 import {
     FastifyAdapter,
     NestFastifyApplication,
-} from "@nestjs/platform-fastify";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { ApplicationModule } from "./modules/app.module";
-import { CommonModule, LogInterceptor } from "./modules/common";
+} from '@nestjs/platform-fastify';
+import {DocumentBuilder, SwaggerModule} from '@nestjs/swagger';
+import {ApplicationModule} from './modules/app.module';
+import {CommonModule, LogInterceptor} from './modules/common';
 
 /**
  * These are API defaults that can be changed using environment variables,
  * it is not required to change them (see the `.env.example` file)
  */
 const API_DEFAULT_PORT = 4000;
-const API_DEFAULT_PREFIX = "/api/v1/";
+const API_DEFAULT_PREFIX = '/api/v1/';
 
 /**
  * The defaults below are dedicated to Swagger configuration, change them
@@ -21,9 +21,9 @@ const API_DEFAULT_PREFIX = "/api/v1/";
  *
  * @todo Change the constants below following your API requirements
  */
-const SWAGGER_TITLE = "Passenger API";
-const SWAGGER_DESCRIPTION = "API used for passenger management";
-const SWAGGER_PREFIX = "/docs";
+const SWAGGER_TITLE = 'MYC API';
+const SWAGGER_DESCRIPTION = 'API used for MYC server';
+const SWAGGER_PREFIX = '/docs';
 
 /**
  * Register a Swagger module in the NestJS application.
@@ -38,7 +38,18 @@ function createSwagger(app: INestApplication) {
     const options = new DocumentBuilder()
         .setTitle(SWAGGER_TITLE)
         .setDescription(SWAGGER_DESCRIPTION)
-        .addBearerAuth()
+        .addBearerAuth(
+            {
+                // I was also testing it without prefix 'Bearer ' before the JWT
+                description: 'Please enter token in following format: Bearer [your JWT]',
+                name: 'Authorization',
+                bearerFormat: 'Bearer',
+                scheme: 'Bearer',
+                type: 'http',
+                in: 'Header'
+            },
+            'access-token', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+        )
         .build();
 
     const document = SwaggerModule.createDocument(app, options);
@@ -61,20 +72,20 @@ async function bootstrap(): Promise<void> {
 
     app.setGlobalPrefix(process.env.API_PREFIX || API_DEFAULT_PREFIX);
 
-    if (!process.env.SWAGGER_ENABLE || process.env.SWAGGER_ENABLE === "1") {
+    if (!process.env.SWAGGER_ENABLE || process.env.SWAGGER_ENABLE === '1') {
         createSwagger(app);
     }
 
     app.enableCors({
-        origin: "*",
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: ["Content-Type", "Accept"],
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
     });
 
     const logInterceptor = app.select(CommonModule).get(LogInterceptor);
     app.useGlobalInterceptors(logInterceptor);
 
-    await app.listen(process.env.API_PORT || API_DEFAULT_PORT, "0.0.0.0");
+    await app.listen(process.env.API_PORT || API_DEFAULT_PORT, '0.0.0.0');
 }
 
 /**
