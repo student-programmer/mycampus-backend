@@ -16,4 +16,6 @@ export interface Config {
 
     readonly JWT_EXPIRATION_TIME: number;
 
+    readonly SALT_ROUNDS: number;
+
 }

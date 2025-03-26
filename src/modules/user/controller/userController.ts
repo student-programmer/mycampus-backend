@@ -73,7 +73,7 @@ export class AuthController {
     @ApiOperation({summary: 'Register User'})
     @ApiResponse({status: HttpStatus.OK})
     public async registerUser(@Body(RegisterPipe) input: RegisterInput): Promise<null> {
-        const hashedPassword = await bcrypt.hash(input['password'], 10);
+        const hashedPassword = await bcrypt.hash(input['password'], this.config.SALT_ROUNDS);
         const User = await this.UserService.create(input, hashedPassword);
 
         if (!User) {
