@@ -12,8 +12,6 @@ export interface Config {
 
     readonly HEALTH_TOKEN: string;
 
-    readonly SALT_SECRET: string;
-
     readonly JWT_EXPIRATION_TIME: number;
 
     readonly SALT_ROUNDS: number;

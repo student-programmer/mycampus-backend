@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
 import {PrismaService} from '../../common';
-import {InterestData, LanguageData, UniversityData} from '../model';
+import {InterestData, LanguageData, StudyDirectionData, UniversityData} from '../model';
 
 @Injectable()
 export class DictService {
@@ -45,5 +45,16 @@ export class DictService {
         });
 
         return interestList.map(interest => new InterestData(interest));
+    }
+
+    public async getAllStudyDirections(): Promise<StudyDirectionData[]> {
+        const studyDirectionList = await this.prismaService.studyDirection.findMany({
+            select: {
+                id: true,
+                name: true,
+            },
+        });
+
+        return studyDirectionList.map(studyDirection => new StudyDirectionData(studyDirection));
     }
 }

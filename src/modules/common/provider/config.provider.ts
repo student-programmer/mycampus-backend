@@ -17,7 +17,6 @@ export const configProvider = {
             JWT_EXPIRATION_TIME: Joi.number().required(),
             JWT_ISSUER: Joi.string().required(),
             HEALTH_TOKEN: Joi.string().required(),
-            SALT_SECRET: Joi.string().required(),
         });
 
         const result = validationSchema.validate(env);

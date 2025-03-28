@@ -30,6 +30,7 @@ export class RegisterPipe extends JoiValidationPipe {
             photo: Joi.string().required(),
             languages: Joi.array().items(Joi.number()).required(),
             university: Joi.number().required(),
+            studyDirection: Joi.number().required(),
             interests: Joi.array().items(Joi.number()).required(),
             email: Joi.string().email().required(),
             password: Joi.string().required()

@@ -51,6 +51,8 @@ export class UserData {
     public readonly languages: number[];
     @ApiProperty()
     public readonly university: number;
+     @ApiProperty()
+    public readonly studyDirection: number;
     @ApiProperty()
     public readonly interests: number[];
 
@@ -67,6 +69,7 @@ export class UserData {
         this.location = entity.location;
         this.languages = entity.languages.map((l: any) => l);
         this.university = entity.university;
+        this.studyDirection = entity.studyDirection;
         this.interests = entity.interests.map((i: any) => i);
     }
 }
