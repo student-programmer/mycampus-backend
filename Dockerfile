@@ -26,10 +26,10 @@ COPY --from=builder --chown=node:node /home/node/prisma ./prisma
 COPY --from=builder --chown=node:node /home/node/dist ./dist
 COPY --from=builder --chown=node:node /home/node/package*.json ./
 
-RUN npx prisma generate
-
-# Устанавливаем зависимости для продакшн окружения
 RUN npm install --omit=dev --legacy-peer-deps
+
+
+RUN npx prisma generate
 
 # Выполняем миграции при старте контейнера
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
