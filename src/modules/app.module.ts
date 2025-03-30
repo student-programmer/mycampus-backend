@@ -10,9 +10,10 @@ import {EventsController} from './events/events.controller';
 import {EventsService} from './events/events.service';
 import {PlacesModule} from './places/places.module';
 import {UserModule} from './user/user.module';
+import { ChatModule } from "./chat/chat.module";
 
 @Module({
-    imports: [CommonModule, UserModule, PlacesModule, ConnectsModule, DictModule],
+    imports: [CommonModule, UserModule, PlacesModule, ConnectsModule, DictModule, ChatModule],
     controllers: [EventsController],
     providers: [EventsService],
 })

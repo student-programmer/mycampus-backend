@@ -16,6 +16,6 @@
     "strictNullChecks": true,
     "noUnusedLocals": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "node_modules/@prisma/client/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }
