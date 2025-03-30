@@ -7,7 +7,7 @@ import {
 import {ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 
 import {LoggerService} from '../../common';
-import {InterestData, LanguageData, StudyDirectionData, UniversityData} from '../model';
+import {CountryData, InterestData, LanguageData, StudyDirectionData, UniversityData} from '../model';
 import {DictService} from '../service';
 
 @Controller('dict')
@@ -69,6 +69,19 @@ export class DictController {
         this.logger.info(`Got ${studyInterests.length} study interests`);
 
         return studyInterests;
+    }
+
+    @Get('countries')
+    @ApiOperation({summary: 'Get all countries'})
+    @ApiResponse({status: HttpStatus.OK, type: [CountryData]})
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async getAllCountries(@Request() req: Request): Promise<CountryData[]> {
+
+        const countries: CountryData[] = await this.DictService.getAllCountries();
+
+        this.logger.info(`Got ${countries.length} countries`);
+
+        return countries;
     }
 
 }

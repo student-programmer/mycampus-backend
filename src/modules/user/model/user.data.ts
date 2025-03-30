@@ -40,11 +40,13 @@ export class UserData {
     @ApiProperty()
     public readonly description: string = '';
     @ApiProperty()
-    public readonly sex: number;
+    public readonly sex: string;
     @ApiProperty()
-    public readonly photo: number;
+    public readonly photo: string = '';
     @ApiProperty()
-    public readonly location: number;
+    public readonly location: string = '';
+    @ApiProperty()
+    public readonly countryId: number;
     @ApiProperty()
     public readonly languages: number[];
     @ApiProperty()
@@ -65,6 +67,7 @@ export class UserData {
         this.sex = entity.sex;
         this.photo = entity.photo;
         this.location = entity.location;
+        this.countryId = entity.countryId;
         this.languages = entity.languages.map((l: any) => l);
         this.university = entity.university;
         this.studyDirection = entity.studyDirection;
@@ -90,6 +93,8 @@ export class DetailUserData {
     public readonly sex: string;
     @ApiProperty()
     public readonly photo: string;
+    @ApiProperty()
+    public readonly country: object;
     @ApiProperty()
     public readonly location: string;
     @ApiProperty()
@@ -126,6 +131,9 @@ export class DetailUserData {
             id: l.interest.id,
             name: l.interest.name
         }));
+        this.country = {
+            ...entity.country,
+        };
     }
 }
 

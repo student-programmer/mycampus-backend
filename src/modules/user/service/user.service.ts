@@ -1,6 +1,6 @@
 import {BadRequestException, Injectable} from '@nestjs/common';
 
-import {AuthUser, User} from '@prisma/client';
+import {AuthUser} from '@prisma/client';
 import {PrismaService} from '../../common';
 import {DetailUserData} from '../model';
 import {RegisterInput} from '../model/user.input';
@@ -45,6 +45,7 @@ export class UserService {
                         interest: true,
                     }
                 },
+                country: true,
             },
         });
 
@@ -101,7 +102,7 @@ export class UserService {
      *
      * @returns A User object
      */
-    public async create(payload: RegisterInput, hashedPassword: string): Promise<(User & { authUser: AuthUser })> {
+    public async create(payload: RegisterInput, hashedPassword: string): Promise<DetailUserData> {
 
         const email: string = payload['email'];
         const authUser = await this.prismaService.authUser.findUnique({
@@ -127,7 +128,11 @@ export class UserService {
                         password: hashedPassword,
                     },
                 },
-                // Добавляем связанные данные сразу через вложенные create
+                country:{
+                    connect:{
+                        id: payload.countryId,
+                    }
+                },
                 interests: {
                     createMany: {
                         data: payload.interests.map(interestId => ({
@@ -169,9 +174,10 @@ export class UserService {
                         studyDirection: true,
                     },
                 },
+                country: true,
             },
         });
 
-        return user;
+        return new DetailUserData(user);
     }
 }
