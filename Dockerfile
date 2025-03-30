@@ -4,7 +4,7 @@ FROM node:20-alpine as builder
 WORKDIR /home/node
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Копируем файлы Prisma
 COPY prisma ./prisma
@@ -29,7 +29,7 @@ COPY --from=builder --chown=node:node /home/node/package*.json ./
 RUN npx prisma generate
 
 # Устанавливаем зависимости для продакшн окружения
-RUN npm install --omit=dev
+RUN npm install --omit=dev --legacy-peer-deps
 
 # Выполняем миграции при старте контейнера
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
