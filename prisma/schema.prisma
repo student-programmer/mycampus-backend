@@ -11,25 +11,50 @@ datasource db {
 }
 
 model AuthUser {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
+  id       Int          @id @default(autoincrement())
+  email    String       @unique
   password String
   user     User?
   company  CompanyUser?
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  authUserId  Int       @unique
-  firstName   String
-  lastName    String
-  birthDate   DateTime
-  description String?
-  authUser    AuthUser  @relation(fields: [authUserId], references: [id])
-  languages   UserLanguage[]
-  education   UserEducation[]
-  interests   UserInterest[]
-  reviews     Review[]
+  id               Int             @id @default(autoincrement())
+  authUserId       Int             @unique
+  firstName        String
+  lastName         String
+  birthDate        DateTime
+  description      String?
+  isOnline         Boolean         @default(false)
+  authUser         AuthUser        @relation(fields: [authUserId], references: [id])
+  sex              String          @default("Male")
+  location         String?
+  photo            String?
+  countryId        Int? // Новое поле для связи с Country
+  country          Country?        @relation(fields: [countryId], references: [id]) // Связь
+  languages        UserLanguage[]
+  education        UserEducation[]
+  interests        UserInterest[]
+  reviews          Review[]
+  sentMessages     Message[]       @relation("SentMessages")
+  receivedMessages Message[]       @relation("ReceivedMessages")
+}
+
+model Country {
+  id    Int     @id @default(autoincrement())
+  photo String?
+  name  String
+  users User[] // Обратная связь (опционально)
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId   Int
+  receiver   User?    @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiverId Int?
+  createdAt  DateTime @default(now())
 }
 
 model CompanyUser {
@@ -40,68 +65,71 @@ model CompanyUser {
 }
 
 model Language {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id    Int            @id @default(autoincrement())
+  name  String         @unique
   users UserLanguage[]
 }
 
 model UserLanguage {
-  userId    Int
+  userId     Int
   languageId Int
-  user      User     @relation(fields: [userId], references: [id])
-  language  Language @relation(fields: [languageId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  language   Language @relation(fields: [languageId], references: [id])
+
   @@id([userId, languageId])
 }
 
 model University {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id        Int             @id @default(autoincrement())
+  name      String          @unique
   education UserEducation[]
 }
 
 model StudyDirection {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id        Int             @id @default(autoincrement())
+  name      String          @unique
   education UserEducation[]
 }
 
 model UserEducation {
-  userId          Int
-  universityId    Int
+  userId           Int
+  universityId     Int
   studyDirectionId Int
-  user           User           @relation(fields: [userId], references: [id])
-  university     University     @relation(fields: [universityId], references: [id])
-  studyDirection StudyDirection @relation(fields: [studyDirectionId], references: [id])
+  user             User           @relation(fields: [userId], references: [id])
+  university       University     @relation(fields: [universityId], references: [id])
+  studyDirection   StudyDirection @relation(fields: [studyDirectionId], references: [id])
+
   @@id([userId, universityId, studyDirectionId])
 }
 
 model Interest {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id    Int            @id @default(autoincrement())
+  name  String         @unique
   users UserInterest[]
 }
 
 model UserInterest {
-  userId    Int
+  userId     Int
   interestId Int
-  user      User     @relation(fields: [userId], references: [id])
-  interest  Interest @relation(fields: [interestId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  interest   Interest @relation(fields: [interestId], references: [id])
+
   @@id([userId, interestId])
 }
 
 model Place {
-  id          Int    @id @default(autoincrement())
-  name        String
-  rating      Float
-  category    String
-  address     String
-  keywords    String?
-  website     String?
-  instagram   String?
-  phoneNumber String?
+  id           Int      @id @default(autoincrement())
+  name         String
+  rating       Float
+  category     String
+  address      String
+  keywords     String?
+  website      String?
+  instagram    String?
+  phoneNumber  String?
   workingHours String?
-  description String?
-  reviews     Review[]
+  description  String?
+  reviews      Review[]
 }
 
 model Review {
@@ -110,28 +138,27 @@ model Review {
   userId  Int
   text    String
   rating  Float
-  place   Place @relation(fields: [placeId], references: [id])
-  user    User  @relation(fields: [userId], references: [id])
+  place   Place  @relation(fields: [placeId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
 }
 
 model Event {
-  id            Int    @id @default(autoincrement())
-  name          String
-  category      String
-  address       String
-  price         Float
-  website       String?
-  instagram     String?
-  phoneNumber   String?
-  description   String?
+  id             Int             @id @default(autoincrement())
+  name           String
+  category       String
+  address        String
+  price          Float
+  website        String?
+  instagram      String?
+  phoneNumber    String?
+  description    String?
   ticketSchedule String?
-  schedules     EventSchedule[]
+  schedules      EventSchedule[]
 }
 
 model EventSchedule {
-  id      Int    @id @default(autoincrement())
+  id      Int      @id @default(autoincrement())
   eventId Int
   time    DateTime
-  event   Event @relation(fields: [eventId], references: [id])
+  event   Event    @relation(fields: [eventId], references: [id])
 }
-

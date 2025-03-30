@@ -3,6 +3,7 @@
   "include": [
     "src/**/*",
     "**/*.spec.ts",
+    "node_modules/@prisma/client/**/*.ts",
   ],
   "exclude": [
     "node_modules",
