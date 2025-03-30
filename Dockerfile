@@ -14,7 +14,7 @@ RUN npx prisma generate
 
 COPY --chown=node:node . .
 
-RUN npm run build && npm prune --omit=dev
+RUN npm run build && npm prune --omit=dev --legacy-peer-deps
 
 # Stage 2: Production image
 FROM node:20-alpine
