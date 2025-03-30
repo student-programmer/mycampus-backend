@@ -87,11 +87,11 @@ export class DetailUserData {
     @ApiProperty()
     public readonly description: string = '';
     @ApiProperty()
-    public readonly sex: number;
+    public readonly sex: string;
     @ApiProperty()
-    public readonly photo: number;
+    public readonly photo: string;
     @ApiProperty()
-    public readonly location: number;
+    public readonly location: string;
     @ApiProperty()
     public readonly languages: object[];
     @ApiProperty()

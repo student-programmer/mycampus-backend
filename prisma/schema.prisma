@@ -27,12 +27,24 @@ model User {
   description      String?
   isOnline         Boolean         @default(false)
   authUser         AuthUser        @relation(fields: [authUserId], references: [id])
+  sex              String
+  location         String?
+  photo            String?
+  countryId        Int?            // Новое поле для связи с Country
+  country          Country?        @relation(fields: [countryId], references: [id]) // Связь
   languages        UserLanguage[]
   education        UserEducation[]
   interests        UserInterest[]
   reviews          Review[]
   sentMessages     Message[]       @relation("SentMessages")
   receivedMessages Message[]       @relation("ReceivedMessages")
+}
+
+model Country {
+  id               Int             @id @default(autoincrement())
+  photo            String?
+  name             String
+  users            User[]          // Обратная связь (опционально)
 }
 
 model Message {
