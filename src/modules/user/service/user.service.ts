@@ -2,6 +2,7 @@ import {BadRequestException, Injectable} from '@nestjs/common';
 
 import {AuthUser, User} from '@prisma/client';
 import {PrismaService} from '../../common';
+import {DetailUserData} from '../model';
 import {RegisterInput} from '../model/user.input';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class UserService {
      *
      * @returns A User object
      */
-    public async find(email: string): Promise<(User & { authUser: AuthUser }) | null> {
+    public async find(email: string): Promise<(DetailUserData) | null> {
         const authUser = await this.prismaService.authUser.findUnique({
             where: {email}
         });
@@ -47,7 +48,51 @@ export class UserService {
             },
         });
 
-        return user;
+        return new DetailUserData(user);
+    }
+
+    public async getUserById(id: number): Promise<(DetailUserData) | null> {
+        const authUser = await this.prismaService.authUser.findUnique({
+            where: {id}
+        });
+
+        if (!authUser) return null;
+
+        const user = await this.prismaService.user.findUnique({
+            where: {authUserId: authUser.id},
+            include: {
+                authUser: true,
+                languages: {
+                    include: {
+                        language: true
+                    }
+                },
+                education: {
+                    include: {
+                        university: true,
+                        studyDirection: true
+                    },
+                },
+                interests: {
+                    include: {
+                        interest: true,
+                    }
+                },
+            },
+        });
+
+        return new DetailUserData(user);
+    }
+
+
+    public async getAuthUser(email: string): Promise<(AuthUser) | null> {
+        const authUser = await this.prismaService.authUser.findUnique({
+            where: {email}
+        });
+
+        if (!authUser) return null;
+
+        return authUser;
     }
 
 

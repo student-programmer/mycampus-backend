@@ -4,7 +4,7 @@ import {
     Controller,
     Get,
     HttpStatus,
-    Inject,
+    Inject, Param, ParseIntPipe,
     Post,
     Request,
     UseGuards
@@ -18,7 +18,7 @@ import {LoggerService, Config, AuthGuard} from '../../common';
 import {Service} from '../../tokens';
 import {AuthPipe} from '../flow';
 import {RegisterPipe} from '../flow/user.pipe';
-import {AuthInput, AccessTokenDto, UserData} from '../model';
+import {AuthInput, AccessTokenDto} from '../model';
 import {RegisterInput} from '../model/user.input';
 import {UserService} from '../service';
 
@@ -40,7 +40,7 @@ export class AuthController {
     @ApiResponse({status: HttpStatus.OK})
     public async signIn(@Body(AuthPipe) input: AuthInput): Promise<AccessTokenDto> {
 
-        const User = await this.UserService.find(input['email']);
+        const User = await this.UserService.getAuthUser(input['email']);
 
         if (!User) {
             throw new BadRequestException({
@@ -49,7 +49,7 @@ export class AuthController {
             });
         }
 
-        const isMatch = await bcrypt.compare(input['password'], User.authUser.password);
+        const isMatch = await bcrypt.compare(input['password'], User.password);
 
         if (!isMatch) {
             throw new BadRequestException({
@@ -58,8 +58,8 @@ export class AuthController {
             });
         }
 
-        this.logger.info(`User with ID ${User['id']} success authenticated`);
-        const payload = {sub: User['id'], username: User.authUser['email']};
+        this.logger.info(`User with ID ${User.id} success authenticated`);
+        const payload = {sub: User.id, username: User.email};
 
         return {
             access_token: await this.jwtService.signAsync(payload, {
@@ -76,7 +76,7 @@ export class AuthController {
         const hashedPassword = await bcrypt.hash(input['password'], Number(this.config.SALT_ROUNDS));
         const User = await this.UserService.create(input, hashedPassword);
 
-        this.logger.info(`User with ID ${User['id']} success authenticated`);
+        this.logger.info(`User with ID ${User.id} success authenticated`);
 
         return null;
     }
@@ -98,9 +98,9 @@ export class UserController {
     }
 
     @UseGuards(AuthGuard)
-    @Get('profile')
-    @ApiOperation({summary: 'Get profile'})
-    async getProfile(@Request() req: Request) {
+    @Get('current_profile')
+    @ApiOperation({summary: 'Get current profile'})
+    async getCurrentUser(@Request() req: Request) {
 
         // @ts-ignore
         const jwtToken = req.headers['authorization'].replace('Bearer ', '');
@@ -117,14 +117,32 @@ export class UserController {
         const User = await this.UserService.find(payload['username']);
 
         // @ts-ignore
-        this.logger.info(`User with ID ${User['id']} success authenticated`);
+        this.logger.info(`User with ID ${User.id} success authenticated`);
 
 
         if (!User) {
             throw new BadRequestException('User not find!');
         }
 
-        return new UserData(User);
+        return User;
+    }
+
+    @UseGuards(AuthGuard)
+    @Get(':id')
+    @ApiOperation({summary: 'Get profile by id'})
+    async getUserById(@Param('id', ParseIntPipe) id: number) {
+
+        // @ts-ignore
+        const User = await this.UserService.getUserById(Number(id));
+
+        if (!User) {
+            throw new BadRequestException('User not found!');
+        }
+
+        // @ts-ignore
+        this.logger.info(`Get user with ${User?.id}`);
+
+        return User;
     }
 
 }

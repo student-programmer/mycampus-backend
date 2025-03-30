@@ -25,8 +25,6 @@ export class ProtectedAuthData extends OmitType(AuthData, ['password'] as const)
 
 export class UserData {
 
-    public static readonly NAME_LENGTH = 50;
-
     @ApiProperty()
     public readonly id: number;
     @ApiProperty()
@@ -51,7 +49,7 @@ export class UserData {
     public readonly languages: number[];
     @ApiProperty()
     public readonly university: number;
-     @ApiProperty()
+    @ApiProperty()
     public readonly studyDirection: number;
     @ApiProperty()
     public readonly interests: number[];
@@ -74,6 +72,62 @@ export class UserData {
     }
 }
 
+export class DetailUserData {
+
+    @ApiProperty()
+    public readonly id: number;
+    @ApiProperty()
+    public readonly firstName: string;
+    @ApiProperty()
+    public readonly lastName: string;
+    @ApiProperty()
+    public readonly email: string;
+    @ApiProperty()
+    public readonly birthDate: Date;
+    @ApiProperty()
+    public readonly description: string = '';
+    @ApiProperty()
+    public readonly sex: number;
+    @ApiProperty()
+    public readonly photo: number;
+    @ApiProperty()
+    public readonly location: number;
+    @ApiProperty()
+    public readonly languages: object[];
+    @ApiProperty()
+    public readonly education: object;
+    @ApiProperty()
+    public readonly interests: object[];
+
+    public constructor(entity: any) {
+        this.id = entity.id;
+        this.firstName = entity.firstName;
+        this.lastName = entity.lastName;
+        this.email = entity.authUser.email;
+        this.birthDate = entity.birthDate;
+        this.description = entity.description;
+        this.sex = entity.sex;
+        this.photo = entity.photo;
+        this.location = entity.location;
+        this.languages = entity.languages
+            .map((l: any) => ({
+                id: l.language.id,
+                name: l.language.name
+            }));
+        this.education = {
+            university: {
+                name: entity.education[0].university.name,
+            },
+            studyDirection: {
+                name: entity.education[0].studyDirection.name,
+            }
+        };
+        this.interests = entity.interests.map((l: any) => ({
+            id: l.interest.id,
+            name: l.interest.name
+        }));
+    }
+}
 
 export class CompanyUserData {
 
