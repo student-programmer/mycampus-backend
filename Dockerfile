@@ -25,8 +25,7 @@ WORKDIR /home/node
 COPY --from=builder --chown=node:node /home/node/prisma ./prisma
 COPY --from=builder --chown=node:node /home/node/dist ./dist
 COPY --from=builder --chown=node:node /home/node/package*.json ./
-
-RUN sudo apt update && sudo apt install -y openssl libssl-dev
+COPY --from=builder --chown=node:node /home/node/certs ./certs
 
 RUN npm install --omit=dev --legacy-peer-deps
 

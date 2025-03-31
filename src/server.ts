@@ -76,7 +76,7 @@ async function bootstrap(): Promise<void> {
     app.enableCors({
         origin: "*",
         methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: ["Content-Type", "Accept"],
+        allowedHeaders: ["Content-Type", "Accept", "Authorization"],
     });
 
     const logInterceptor = app.select(CommonModule).get(LogInterceptor);
