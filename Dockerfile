@@ -21,6 +21,8 @@ FROM node:20-alpine
 
 WORKDIR /home/node
 
+RUN apk add --no-cache openssl
+
 # Копируем необходимые файлы из builder стадии
 COPY --from=builder --chown=node:node /home/node/prisma ./prisma
 COPY --from=builder --chown=node:node /home/node/dist ./dist
@@ -30,7 +32,6 @@ COPY --from=builder --chown=node:node /home/node/certs ./certs
 RUN npm install --omit=dev --legacy-peer-deps
 
 
-RUN npx prisma generate
 
 # Выполняем миграции при старте контейнера
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]

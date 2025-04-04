@@ -7,8 +7,6 @@ import {
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ApplicationModule } from "./modules/app.module";
 import { CommonModule, LogInterceptor } from "./modules/common";
-import * as fs from 'fs';
-import * as path from 'path';
 
 /**
  * These are API defaults that can be changed using environment variables,
@@ -54,15 +52,9 @@ function createSwagger(app: INestApplication) {
  * parsing middleware.
  */
 async function bootstrap(): Promise<void> {
-    const httpsOptions = {
-        https: {
-         key: fs.readFileSync(path.join(__dirname,'..', 'certs', 'cert.key')),
-         cert: fs.readFileSync(path.join(__dirname, '..', 'certs',  'cert.pem')),
-        }
-    };
     const app = await NestFactory.create<NestFastifyApplication>(
         ApplicationModule,
-        new FastifyAdapter(httpsOptions)
+        new FastifyAdapter()
     );
 
     // @todo Enable Helmet for better API security headers
