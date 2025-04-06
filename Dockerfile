@@ -27,7 +27,6 @@ RUN apk add --no-cache openssl
 COPY --from=builder --chown=node:node /home/node/prisma ./prisma
 COPY --from=builder --chown=node:node /home/node/dist ./dist
 COPY --from=builder --chown=node:node /home/node/package*.json ./
-COPY --from=builder --chown=node:node /home/node/certs ./certs
 
 RUN npm install --omit=dev --legacy-peer-deps
 
