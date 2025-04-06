@@ -11,15 +11,16 @@ import {
 } from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
 import {ApiBearerAuth, ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
+import {AuthUser} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 import {LoggerService, Config, AuthGuard} from '../../common';
 
 import {Service} from '../../tokens';
 import {AuthPipe} from '../flow';
-import {RegisterPipe} from '../flow/user.pipe';
-import {AuthInput, AccessTokenDto} from '../model';
-import {RegisterInput} from '../model/user.input';
+import {RegisterPipe, UpdatePasswordPipe, UpdatePipe} from '../flow/user.pipe';
+import {AuthInput, AccessTokenDto, DetailUserData} from '../model';
+import {RegisterInput, UpdateInput, UpdatePass} from '../model/user.input';
 import {UserService} from '../service';
 
 @Controller('auth')
@@ -114,7 +115,7 @@ export class UserController {
         );
 
         // @ts-ignore
-        const User = await this.UserService.find(payload['username']);
+        const User = await this.UserService.getByEmail(payload['username']);
 
         // @ts-ignore
         this.logger.info(`User with ID ${User.id} success authenticated`);
@@ -129,7 +130,7 @@ export class UserController {
 
     @UseGuards(AuthGuard)
     @Get(':id')
-    @ApiOperation({summary: 'Get profile by id'})
+    @ApiOperation({summary: 'Get user by id'})
     async getUserById(@Param('id', ParseIntPipe) id: number) {
 
         // @ts-ignore
@@ -138,6 +139,62 @@ export class UserController {
         if (!User) {
             throw new BadRequestException('User not found!');
         }
+
+        // @ts-ignore
+        this.logger.info(`Get user with ${User?.id}`);
+
+        return User;
+    }
+
+    @UseGuards(AuthGuard)
+    @Post('update')
+    @ApiOperation({summary: 'Update user'})
+    async update(@Request() req: Request, @Body(UpdatePipe) updateData: UpdateInput): Promise<DetailUserData> {
+
+        // @ts-ignore
+        const jwtToken = req.headers['authorization'].replace('Bearer ', '');
+
+        // @ts-ignore
+        const payload = await this.jwtService.verifyAsync(
+            jwtToken,
+            {
+                secret: this.config.JWT_SECRET
+            }
+        );
+
+        // @ts-ignore
+        const User = await this.UserService.update(payload['username'], updateData);
+
+        if (!User) {
+            throw new BadRequestException('User not found!');
+        }
+
+        // @ts-ignore
+        this.logger.info(`Get user with ${User?.id}`);
+
+        return User;
+    }
+
+    @UseGuards(AuthGuard)
+    @Post('update_password')
+    @ApiOperation({summary: 'Update user password'})
+    async updatePassword(@Request() req: Request, @Body(UpdatePasswordPipe) updateData: UpdatePass): Promise<AuthUser> {
+
+        // @ts-ignore
+        const jwtToken = req.headers['authorization'].replace('Bearer ', '');
+
+        // @ts-ignore
+        const payload = await this.jwtService.verifyAsync(
+            jwtToken,
+            {
+                secret: this.config.JWT_SECRET
+            }
+        );
+
+        const hashedPassword = await bcrypt.hash(updateData.password, Number(this.config.SALT_ROUNDS));
+
+        // @ts-ignore
+        const User = await this.UserService.updatePassword(payload['username'], hashedPassword);
 
         // @ts-ignore
         this.logger.info(`Get user with ${User?.id}`);

@@ -3,7 +3,7 @@ import {BadRequestException, Injectable} from '@nestjs/common';
 import {AuthUser} from '@prisma/client';
 import {PrismaService} from '../../common';
 import {DetailUserData} from '../model';
-import {RegisterInput} from '../model/user.input';
+import {RegisterInput, UpdateInput} from '../model/user.input';
 
 @Injectable()
 export class UserService {
@@ -18,7 +18,7 @@ export class UserService {
      *
      * @returns A User object
      */
-    public async find(email: string): Promise<(DetailUserData) | null> {
+    public async getByEmail(email: string): Promise<(DetailUserData) | null> {
         const authUser = await this.prismaService.authUser.findUnique({
             where: {email}
         });
@@ -128,8 +128,8 @@ export class UserService {
                         password: hashedPassword,
                     },
                 },
-                country:{
-                    connect:{
+                country: {
+                    connect: {
                         id: payload.countryId,
                     }
                 },
@@ -179,5 +179,96 @@ export class UserService {
         });
 
         return new DetailUserData(user);
+    }
+
+    public async update(email: string, updateData: UpdateInput): Promise<(DetailUserData) | null> {
+
+        const authUser = await this.prismaService.authUser.findUnique({
+            where: {email}
+        });
+
+        if (!authUser) return null;
+
+        await this.prismaService.authUser.update({
+            where: {
+                id: authUser.id
+            },
+            data: {
+                email
+            }
+        });
+
+
+        const updateUser = await this.prismaService.user.update({
+            where: {
+                authUserId: authUser.id, // Передай сюда ID из AuthUser
+            },
+            data: {
+                firstName: updateData.firstName,
+                lastName: updateData.lastName,
+                description: updateData.description,
+                birthDate: updateData.birthDate,
+                sex: updateData.sex,
+                location: updateData.location,
+                photo: updateData.photo,
+                countryId: updateData.countryId,
+
+                languages: {
+                    deleteMany: {}, // Удаляем все текущие языки
+                    create: updateData.languages.map(item => ({languageId: item}))
+                },
+
+                interests: {
+                    deleteMany: {},
+                    create: updateData.interests.map(item => ({interestId: item}))
+                },
+
+                education: {
+                    deleteMany: {},
+                    create: {
+                        universityId: updateData.university,
+                        studyDirectionId: updateData.studyDirection,
+                    }
+                },
+            },
+            include: {
+                authUser: true,
+                interests: {
+                    include: {
+                        interest: true,
+                    },
+                },
+                languages: {
+                    include: {
+                        language: true,
+                    },
+                },
+                education: {
+                    include: {
+                        university: true,
+                        studyDirection: true,
+                    },
+                },
+                country: true,
+            },
+        });
+
+        console.log(updateUser, 'updateUser');
+
+        return new DetailUserData(updateUser);
+    }
+
+    public async updatePassword(email: string, hashedPassword: string): Promise<(AuthUser)> {
+
+        const authUser = await this.prismaService.authUser.update({
+            where: {
+                email
+            },
+            data: {
+                password: hashedPassword
+            }
+        });
+
+        return authUser;
     }
 }

@@ -153,3 +153,13 @@ export class CompanyUserData {
         this.authUserId = entity.authUserId;
     }
 }
+
+export class UserUpdatePass {
+
+    @ApiProperty()
+    public readonly password: string;
+
+    public constructor(entity: any) {
+        this.password = entity.password;
+    }
+}
