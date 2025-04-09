@@ -38,7 +38,18 @@ function createSwagger(app: INestApplication) {
     const options = new DocumentBuilder()
         .setTitle(SWAGGER_TITLE)
         .setDescription(SWAGGER_DESCRIPTION)
-        .addBearerAuth()
+        .addBearerAuth(
+            {
+                // I was also testing it without prefix 'Bearer ' before the JWT
+                description: 'Please enter token in following format: Bearer [your JWT]',
+                name: 'Authorization',
+                bearerFormat: 'Bearer',
+                scheme: 'Bearer',
+                type: 'http',
+                in: 'Header'
+            },
+            'access-token', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+        )
         .build();
 
     const document = SwaggerModule.createDocument(app, options);
