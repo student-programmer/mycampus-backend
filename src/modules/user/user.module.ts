@@ -18,6 +18,6 @@ import { UserService } from './service';
         UserController,
         AuthController
     ],
-    exports: []
+    exports: [UserService], // This makes UserService available to other modules
 })
 export class UserModule { }

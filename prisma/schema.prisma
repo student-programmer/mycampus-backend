@@ -25,6 +25,7 @@ model User {
   lastName         String
   birthDate        DateTime
   description      String?
+  photos           String[]
   isOnline         Boolean         @default(false)
   authUser         AuthUser        @relation(fields: [authUserId], references: [id])
   sex              String          @default("Male")
@@ -129,6 +130,7 @@ model Place {
   phoneNumber  String?
   workingHours String?
   description  String?
+  photos       String[]
   reviews      Review[]
 }
 
@@ -153,6 +155,7 @@ model Event {
   phoneNumber    String?
   description    String?
   ticketSchedule String?
+  photos         String[]
   schedules      EventSchedule[]
 }
 
