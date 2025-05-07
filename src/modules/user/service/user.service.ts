@@ -210,7 +210,6 @@ export class UserService {
                 birthDate: updateData.birthDate,
                 sex: updateData.sex,
                 location: updateData.location,
-                photo: updateData.photo,
                 countryId: updateData.countryId,
 
                 languages: {
@@ -253,9 +252,32 @@ export class UserService {
             },
         });
 
-        console.log(updateUser, 'updateUser');
 
         return new DetailUserData(updateUser);
+    }
+
+    public async updatePhoto(email: string, photoURL: string): Promise<Boolean> {
+
+        const authUser = await this.prismaService.authUser.findUnique({
+            where: {email}
+        });
+
+        if (!authUser) return false;
+
+        await this.prismaService.user.update({
+            where: {
+                authUserId: authUser.id,
+            },
+            data: {
+                photo: photoURL,
+            },
+            include: {
+                authUser: true,
+            },
+        });
+
+
+        return true
     }
 
     public async updatePassword(email: string, hashedPassword: string): Promise<(AuthUser)> {

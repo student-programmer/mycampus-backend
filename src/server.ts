@@ -1,12 +1,13 @@
 import { INestApplication } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {
-    FastifyAdapter,
-    NestFastifyApplication,
+  FastifyAdapter,
+  NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { ApplicationModule } from "./modules/app.module";
 import { CommonModule, LogInterceptor } from "./modules/common";
+import fastifyMultipart from '@fastify/multipart';
 
 /**
  * These are API defaults that can be changed using environment variables,
@@ -35,25 +36,25 @@ const SWAGGER_PREFIX = "/docs";
  *       code below with API keys, security requirements, tags and more.
  */
 function createSwagger(app: INestApplication) {
-    const options = new DocumentBuilder()
-        .setTitle(SWAGGER_TITLE)
-        .setDescription(SWAGGER_DESCRIPTION)
-        .addBearerAuth(
-            {
-                // I was also testing it without prefix 'Bearer ' before the JWT
-                description: 'Please enter token in following format: Bearer [your JWT]',
-                name: 'Authorization',
-                bearerFormat: 'Bearer',
-                scheme: 'Bearer',
-                type: 'http',
-                in: 'Header'
-            },
-            'access-token', // This name here is important for matching up with @ApiBearerAuth() in your controller!
-        )
-        .build();
+  const options = new DocumentBuilder()
+    .setTitle(SWAGGER_TITLE)
+    .setDescription(SWAGGER_DESCRIPTION)
+    .addBearerAuth(
+      {
+        // I was also testing it without prefix 'Bearer ' before the JWT
+        description: 'Please enter token in following format: Bearer [your JWT]',
+        name: 'Authorization',
+        bearerFormat: 'Bearer',
+        scheme: 'Bearer',
+        type: 'http',
+        in: 'Header'
+      },
+      'access-token', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+    )
+    .build();
 
-    const document = SwaggerModule.createDocument(app, options);
-    SwaggerModule.setup(SWAGGER_PREFIX, app, document);
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup(SWAGGER_PREFIX, app, document);
 }
 
 /**
@@ -63,29 +64,33 @@ function createSwagger(app: INestApplication) {
  * parsing middleware.
  */
 async function bootstrap(): Promise<void> {
-    const app = await NestFactory.create<NestFastifyApplication>(
-        ApplicationModule,
-        new FastifyAdapter()
-    );
+  const app = await NestFactory.create<NestFastifyApplication>(
+    ApplicationModule,
+    new FastifyAdapter()
+  );
 
-    // @todo Enable Helmet for better API security headers
+  await app.register(( fastifyMultipart as unknown ) as any, {
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  });
 
-    app.setGlobalPrefix(process.env.API_PREFIX || API_DEFAULT_PREFIX);
+  // @todo Enable Helmet for better API security headers
 
-    if (!process.env.SWAGGER_ENABLE || process.env.SWAGGER_ENABLE === "1") {
-        createSwagger(app);
-    }
+  app.setGlobalPrefix(process.env.API_PREFIX || API_DEFAULT_PREFIX);
 
-    app.enableCors({
-        origin: "*",
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: ["Content-Type", "Accept", "Authorization"],
-    });
+  if (!process.env.SWAGGER_ENABLE || process.env.SWAGGER_ENABLE === "1") {
+    createSwagger(app);
+  }
 
-    const logInterceptor = app.select(CommonModule).get(LogInterceptor);
-    app.useGlobalInterceptors(logInterceptor);
+  app.enableCors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Accept", "Authorization"],
+  });
 
-    await app.listen(process.env.API_PORT || API_DEFAULT_PORT, "0.0.0.0");
+  const logInterceptor = app.select(CommonModule).get(LogInterceptor);
+  app.useGlobalInterceptors(logInterceptor);
+
+  await app.listen(process.env.API_PORT || API_DEFAULT_PORT, "0.0.0.0");
 }
 
 /**
@@ -97,9 +102,9 @@ async function bootstrap(): Promise<void> {
  *       service for better error handling in production environments.
  */
 bootstrap().catch((err) => {
-    // eslint-disable-next-line no-console
-    console.error(err);
+  // eslint-disable-next-line no-console
+  console.error(err);
 
-    const defaultExitCode = 1;
-    process.exit(defaultExitCode);
+  const defaultExitCode = 1;
+  process.exit(defaultExitCode);
 });
