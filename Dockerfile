@@ -17,7 +17,7 @@ COPY --chown=node:node . .
 RUN npm run build && npm prune --omit=dev --legacy-peer-deps
 
 # Stage 2: Production image
-FROM node:20-alpine
+FROM  public.ecr.aws/docker/library/node:20-alpine
 
 WORKDIR /home/node
 
