@@ -123,6 +123,7 @@ model Place {
   name         String
   rating       Float
   category     String
+  area         String?
   address      String
   keywords     String?
   website      String?
