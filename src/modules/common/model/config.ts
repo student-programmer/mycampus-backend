@@ -4,6 +4,8 @@ export interface Config {
 
     readonly API_PREFIX: string;
 
+    readonly CLIENT_URL: string;
+
     readonly SWAGGER_ENABLE: number;
 
     readonly JWT_SECRET: string;

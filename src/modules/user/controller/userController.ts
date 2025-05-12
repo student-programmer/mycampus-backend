@@ -25,6 +25,9 @@ import { UserService } from '../service';
 import { FastifyRequest } from "fastify";
 import { finished } from "stream/promises";
 import { S3Service } from "../../s3/s3.service";
+import * as fs from 'fs';
+import * as path from 'path';
+import { EmailService } from "../service/email.service";
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -36,6 +39,7 @@ export class AuthController {
     private jwtService: JwtService,
     private readonly logger: LoggerService,
     private readonly UserService: UserService,
+    private readonly EmailService: EmailService
   ) {
   }
 
@@ -77,13 +81,42 @@ export class AuthController {
   @ApiOperation({ summary: 'Register User' })
   @ApiResponse({ status: HttpStatus.OK })
   public async registerUser(@Body(RegisterPipe) input: RegisterInput): Promise<null> {
-    const hashedPassword = await bcrypt.hash(input['password'], Number(this.config.SALT_ROUNDS));
-    const User = await this.UserService.create(input, hashedPassword);
+    const domainsPath = path.join(__dirname, '..', '..', 'domains.json');
+    const domainData = fs.readFileSync(domainsPath, 'utf-8');
+    const corporateDomains: string[] = JSON.parse(domainData);
+    const emailDomain = input['email']?.split('@')?.[1]
 
-    this.logger.info(`User with ID ${ User.id } success authenticated`);
+    if (!corporateDomains.includes(emailDomain)) {
+      throw new BadRequestException('Registration allowed only for corporate domains');
+    }
+
+    const hashedPassword = await bcrypt.hash(input['password'], Number(this.config.SALT_ROUNDS));
+    const verificationToken =  await bcrypt.hash(input['email'], Number(this.config.SALT_ROUNDS));
+
+    const user = await this.UserService.create(input, hashedPassword, verificationToken);
+
+    const confirmUrl = `${this.config.CLIENT_URL}/verify-email?token=${verificationToken}`;
+    if (process.env.PROD) {
+      await this.EmailService.sendVerificationEmail(user.email, confirmUrl);
+    }
+
+    this.logger.info(`User with ID ${user.id} registered. Verification email sent.`);
 
     return null;
   }
+
+  @Post('verify')
+  @ApiOperation({ summary: 'Verify Email' })
+  @ApiBody({ schema: { example: { token: '...' } } })
+  @ApiResponse({ status: 200, description: 'Email verified' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async verifyEmail(@Body('token') token: string): Promise<{ message: string }> {
+    if (!token) throw new BadRequestException('Token is required');
+
+    await this.UserService.verifyEmailToken(token);
+    return { message: 'Email verified successfully' };
+  }
+
 
 }
 

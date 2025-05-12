@@ -13,6 +13,27 @@ export class UserService {
     ) {
     }
 
+    async verifyEmailToken(token: string): Promise<void> {
+        const record = await this.prismaService.authUser.findFirst({
+            where: { verificationToken: token },
+        });
+
+        if (!record) {
+            throw new BadRequestException('Invalid verification token');
+        }
+
+        if (record.verificationToken && record.tokenExpiresAt && record?.tokenExpiresAt < new Date()) {
+            throw new BadRequestException('Verification token expired');
+        }
+
+        // Обновляем пользователя
+        await this.prismaService.authUser.update({
+            where: { id: record.id },
+            data: { isEmailVerified: true, verificationToken: '' },
+        });
+    }
+
+
     /**
      * Find one User in the database by email
      *
@@ -102,7 +123,7 @@ export class UserService {
      *
      * @returns A User object
      */
-    public async create(payload: RegisterInput, hashedPassword: string): Promise<DetailUserData> {
+    public async create(payload: RegisterInput, hashedPassword: string, verificationToken :string): Promise<DetailUserData> {
 
         const email: string = payload['email'];
         const authUser = await this.prismaService.authUser.findUnique({
@@ -125,6 +146,7 @@ export class UserService {
                 authUser: {
                     create: {
                         email: payload.email,
+                        verificationToken: verificationToken,
                         password: hashedPassword,
                     },
                 },

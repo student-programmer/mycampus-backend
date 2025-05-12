@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "Place" ADD COLUMN     "area" TEXT;
+ALTER TABLE "Place" ALTER COLUMN "area" DROP NOT NULL;
