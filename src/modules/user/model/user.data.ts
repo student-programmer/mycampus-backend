@@ -125,7 +125,7 @@ export class DetailUserData {
                 name: entity.education[0].university.name,
             },
             studyDirection: {
-                 id: entity.education[0].studyDirection.id,
+                id: entity.education[0].studyDirection.id,
                 name: entity.education[0].studyDirection.name,
             }
         };

@@ -1,10 +1,12 @@
-import { Injectable } from "@nestjs/common";
-import { Place } from "@prisma/client";
-import { PrismaService } from "../common";
+import {Injectable} from '@nestjs/common';
+import {Place} from '@prisma/client';
+import {PrismaService} from '../../common';
+import {PlacesResult} from '../model/places.model';
 
 @Injectable()
 export class PlacesService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) {
+    }
 
     // Метод с фильтрацией
     async getAllPlaces(filters: {
@@ -19,7 +21,9 @@ export class PlacesService {
         phoneNumber?: string;
         workingHours?: string;
         description?: string;
-    }): Promise<Place[]> {
+        page: number;
+        limit: number;
+    }): Promise<PlacesResult> {
         const {
             name,
             ratingMin,
@@ -32,12 +36,14 @@ export class PlacesService {
             phoneNumber,
             workingHours,
             description,
+            page,
+            limit,
         } = filters;
 
         // Динамическая сборка фильтра
         const where: { [key: string]: any } = {};
 
-        if (name) where.name = { contains: name, mode: "insensitive" }; // ищет по части имени
+        if (name) where.name = {contains: name, mode: "insensitive"}; // ищет по части имени
         if (ratingMin || ratingMax) where.rating = {}; // фильтрация по рейтингу
 
         // Если указаны ratingMin и ratingMax, создаем условие для диапазона
@@ -53,32 +59,50 @@ export class PlacesService {
             if (ratingMax) where.rating.lte = parseFloat(ratingMax.toString()); // максимальный рейтинг
         }
 
-        if (category)
-            where.category = { contains: category, mode: "insensitive" }; // ищет по части категории
-        if (address) where.address = { contains: address, mode: "insensitive" }; // ищет по части адреса
-        if (keywords)
-            where.keywords = { contains: keywords, mode: "insensitive" }; // фильтрация по ключевым словам
-        if (website) where.website = { contains: website, mode: "insensitive" }; // фильтрация по вебсайту
-        if (instagram)
-            where.instagram = { contains: instagram, mode: "insensitive" }; // фильтрация по инстаграму
-        if (phoneNumber)
-            where.phoneNumber = { contains: phoneNumber, mode: "insensitive" }; // фильтрация по номеру телефона
-        if (workingHours)
+        if (category) {
+            where.category = {contains: category, mode: "insensitive"};
+        } // ищет по части категории
+        if (address) where.address = {contains: address, mode: "insensitive"}; // ищет по части адреса
+        if (keywords) {
+            where.keywords = {contains: keywords, mode: "insensitive"};
+        } // фильтрация по ключевым словам
+        if (website) where.website = {contains: website, mode: "insensitive"}; // фильтрация по вебсайту
+        if (instagram) {
+            where.instagram = {contains: instagram, mode: "insensitive"};
+        } // фильтрация по инстаграму
+        if (phoneNumber) {
+            where.phoneNumber = {contains: phoneNumber, mode: "insensitive"};
+        } // фильтрация по номеру телефона
+        if (workingHours) {
             where.workingHours = {
                 contains: workingHours,
                 mode: "insensitive",
-            }; // фильтрация по часам работы
-        if (description)
-            where.description = { contains: description, mode: "insensitive" }; // фильтрация по описанию
+            };
+        } // фильтрация по часам работы
+        if (description) {
+            where.description = {contains: description, mode: "insensitive"};
+        } // фильтрация по описанию
 
-        return this.prisma.place.findMany({
-            where, // передаем фильтр в запрос
-        });
+        const skip = (page - 1) * limit;
+
+        const [data, totalCount] = await Promise.all([
+            this.prisma.place.findMany({
+                where,
+                skip: Number(skip),
+                take: Number(limit),
+            }),
+            this.prisma.place.count({where}),
+        ]);
+
+        const lastPage = Math.ceil(totalCount / limit);
+
+        return {data, totalCount, lastPage};
     }
+
     // Получение одного места по ID
     async getPlaceById(id: number): Promise<Place | null> {
         return this.prisma.place.findUnique({
-            where: { id },
+            where: {id},
         });
     }
 }
