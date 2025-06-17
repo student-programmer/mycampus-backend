@@ -88,8 +88,8 @@ export class PlacesService {
         const [data, totalCount] = await Promise.all([
             this.prisma.place.findMany({
                 where,
-                skip: Number(skip),
-                take: Number(limit),
+                // skip: Number(skip),
+                // take: Number(limit),
             }),
             this.prisma.place.count({where}),
         ]);
