@@ -84,6 +84,7 @@ export class PlacesService {
         } // фильтрация по описанию
 
         const skip = (page - 1) * limit;
+        console.log(skip);
 
         const [data, totalCount] = await Promise.all([
             this.prisma.place.findMany({
